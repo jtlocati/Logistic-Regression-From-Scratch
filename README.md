@@ -1,0 +1,3 @@
+## Logistic Regression
+Logistic regression is a method used in statistics in order to predict the outcome of somthing given the input of one or more things. A logistic regression function takes an value of type int and outputs a boolean (0 or 1), from this we fit a logistic function between the inputs and outputs wich allows us to make predictions of the possibility of an event happening (\( f(x) = \frac{1}{1 + e^{-(\beta_1 x + \beta_0)}} \)).
+This logistic curve is then assigned a p value wich specifys how sensitve the model is to displaying true of false (simmalar to a T value in tokenization).
