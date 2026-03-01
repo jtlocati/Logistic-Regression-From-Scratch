@@ -1,48 +1,79 @@
 import numpy
-from model.logistic_regression import initialize_parameters, forward, compute_loss, TrainLoop
+from model.logistic_regression import initialize_parameters, forward, compute_loss, TrainLoop, precision, accuracy, recall, predict
+from results.Plotloss import save_loss_plot
 
-TestType = int(input("test type"))
 
-
-if TestType == 1:
-    # Test DS: 4 samples, 3 features
+def ds_forward_demo():
     X = numpy.array([
         [1.0, 0.0, 2.0],
         [0.0, 1.0, 1.0],
         [1.0, 1.0, 0.0],
         [2.0, 1.0, 1.0],
-    ])
+    ], dtype=float)
+    y = numpy.array([1, 0, 1, 0], dtype=float)
+    return X, y
 
-    y = numpy.array([1, 0, 1, 0])
 
-    w, b = initialize_parameters(n_features=X.shape[1])
-    y_pred = forward(X, w, b)
-    loss = compute_loss(y, y_pred)
-
-    print("y_pred:", y_pred)
-    print("loss:", loss)
-
-    #inital logistic regression test as of 'addition of base logistic regression architecture.' commit:
-        #y_pred: [0.5 0.5 0.5 0.5]
-        #loss: 0.6931471805599453
-
-elif TestType == 2:
-    # Create simple linearly separable dataset
+def ds_separable():
     X = numpy.array([
         [1, 1],
         [2, 2],
         [-1, -1],
         [-2, -2]
     ], dtype=float)
+    y = numpy.array([1, 1, 0, 0], dtype=float)
+    return X, y
 
-    y = numpy.array([1, 1, 0, 0])
 
+# -------------------------
+# Minimal selection
+# -------------------------
+
+TestType = int(input("1-5: ").strip())
+
+
+if TestType == 1:
+    X, y = ds_forward_demo()
+    w, b = initialize_parameters(X.shape[1])
+    y_pred = forward(X, w, b)
+    loss = compute_loss(y, y_pred)
+
+    print("y_pred:", y_pred)
+    print("loss:", loss)
+
+
+elif TestType == 2:
+    X, y = ds_separable()
     w, b, losses = TrainLoop(X, y, learning_rate=0.1, epochs=500)
 
     print("Final weights:", w)
     print("Final bias:", b)
     print("Final loss:", losses[-1])
-    # Inital Training loop test @ 'Addition of gradient decent function and training loop for model' commit:
-        #Final weights: [2.00009461 2.00009461]
-        #Final bias: -1.0732517305434009e-16
-        #Final loss: 0.009258349193133278
+
+
+elif TestType == 3:
+    X, y = ds_separable()
+    w, b, losses = TrainLoop(X, y, learning_rate=0.1, epochs=500)
+
+    y_hat = predict(X, w, b)
+    print("Accuracy:", accuracy(y, y_hat))
+    print("Precision:", precision(y, y_hat))
+    print("Recall:", recall(y, y_hat))
+
+
+elif TestType == 4:
+    X, y = ds_separable()
+    w, b, losses = TrainLoop(X, y, learning_rate=0.1, epochs=500)
+
+    save_loss_plot(losses)
+    print("Saved loss plot.")
+
+
+elif TestType == 5:
+    X, y = ds_separable()
+
+    w0, b0, losses0 = TrainLoop(X, y, learning_rate=0.1, epochs=2000, lambda_12=0.0)
+    w1, b1, losses1 = TrainLoop(X, y, learning_rate=0.1, epochs=2000, lambda_12=0.5)
+
+    print("||w|| no reg:", float(numpy.linalg.norm(w0)))
+    print("||w|| L2 reg:", float(numpy.linalg.norm(w1)))

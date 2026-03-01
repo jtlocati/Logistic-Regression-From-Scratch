@@ -66,7 +66,7 @@ def gradient(X: numpy.ndarray, y_true: numpy.ndarray, y_pred: numpy.ndarray, w, 
 
     #L2 Gradiant
     if lambda_12 > 0:
-        m = X.shapw[0]
+        m = X.shape[0]
         dw = dw + (lambda_12 / m) * w
     db = numpy.sum(dz) / m
 
@@ -102,3 +102,37 @@ def TrainLoop(X: numpy.ndarray, Y: numpy.ndarray, learning_rate=0.1, epochs=1000
                 print(f"Epoch = {epoch} && Loss = {loss:.6f}")
 
     return w, b, losses
+
+#Predict probabilitys of 'm' for class one (essencally repackageing the forward function, this just allows function to make more sence when used in code)
+def probability(X: numpy.ndarray, w: numpy.ndarray, b: float) -> numpy.ndarray:
+    return forward(X, w, b)
+
+#convert probabilitys into boolean
+def predict(X: numpy.ndarray, w: numpy.ndarray, b: float, threshold: float = 0.0) -> numpy.ndarray:
+    probabilitys = probability(X, w, b)
+    return (probabilitys >= threshold).astype(int) #converts into binary dependent on threshold sensitvity
+
+
+#---------METRICS------------
+
+def accuracy(y_true: numpy.ndarray, y_prediction: numpy.ndarray) -> float:
+    y_true = y_true.reshape(-1)
+    y_prediction = y_prediction.reshape(-1)
+    return float(numpy.mean(y_true == y_prediction))
+
+def precision(y_true: numpy.ndarray, y_prediction: numpy.array) -> float:
+    y_true = y_true.reshape(-1)
+    y_prediction = y_prediction.reshape(-1)
+
+    #True & False positives (relate in: {Predicted value} and {Actual Value})
+    tp = numpy.sum((y_true == 1) & (y_prediction == 1))
+    fp = numpy.sum((y_true == 0) & (y_prediction == 1))
+    return float(tp / (tp + fp + 1e-12))
+
+def recall(y_true: numpy.ndarray, y_prediction: numpy.ndarray) -> float:
+    y_true = y_true.reshape(-1)
+    y_prediction = y_prediction.reshape(-1)
+
+    tp = numpy.sum((y_true == 1) & (y_prediction == 1))
+    fn = numpy.sum((y_true == 1) & (y_prediction == 0))
+    return float(tp / (tp + fn + 1e-12))
