@@ -1,35 +1,201 @@
-## Logistic Regression
-Logistic regression is a method used in statistics in order to predict the outcome of somthing given the input of one or more things. A logistic regression function takes an value of type int and outputs a boolean (0 or 1), from this we fit a logistic function between the inputs and outputs wich allows us to make predictions of the possibility of an event happening. This logistic curve is then assigned a p value wich specifys how sensitve the model is to displaying true of false (simmalar to a T value in tokenization).
-
 # Logistic Regression From Scratch (NumPy)
 
-## What this is
-A binary classifier implemented using only NumPy for training:
-- sigmoid
-- binary cross-entropy loss
-- gradient descent
-- (later) L2 regularization + evaluation metrics
-- (later) comparison vs sklearn
+## Overview
 
-## Why do it manually?
-This allows my to learn and understand the math behind:
-- probabilities (sigmoid)
-- optimization (gradient descent)
-- loss functions (cross-entropy)
+This project implements **binary logistic regression entirely from scratch using NumPy** — including forward propagation, binary cross-entropy loss, gradient descent optimization, L2 regularization, evaluation metrics, and comparison against `scikit-learn`.
 
-## Core Math
+The goal of this project was not just to *use* logistic regression, but to fully understand:
 
-Sigmoid: Translates real-valued input into a binary probibility
-σ(z) = 1 / (1 + e^-z)
+- How probabilities are modeled with the sigmoid function  
+- How cross-entropy measures prediction error  
+- How gradients are derived and used in optimization  
+- How regularization affects learned parameters  
+- How a custom implementation compares to a production ML library  
 
-Model:
+---
+
+## What Logistic Regression Is
+
+Logistic regression is a binary classification algorithm used to predict the probability that an input belongs to class 1 (vs class 0).
+
+Unlike linear regression, logistic regression outputs a **probability between 0 and 1**, using the sigmoid function:
+
+\[
+\sigma(z) = \frac{1}{1 + e^{-z}}
+\]
+
+If the predicted probability is ≥ 0.5, we classify as 1. Otherwise, 0.
+
+---
+
+## Model Formulation
+
+### Linear Model
+
+\[
 z = Xw + b
-ŷ = σ(z)
+\]
 
-Loss (Binary Cross-Entropy): Measures the amount of outcomes are incorectly predicted. 
-L = -(1/m) Σ [ y log(ŷ) + (1-y) log(1-ŷ) ]
+- `X` → input feature matrix (m samples × n features)  
+- `w` → weight vector (n,)  
+- `b` → bias scalar  
 
-Gradients:
-dz = ŷ - y  -> Gives error signal by how far the predicted value is from the real label in the test set
-dw = (1/m) X^T dz   -> Distibutes error back through the feature to show how the weights should change
-db = (1/m) Σ dz    -> Averages the error across all samples to represent how the bias should shift. 
+### Probability Output
+
+\[
+\hat{y} = \sigma(z)
+\]
+
+Each prediction represents:
+
+\[
+P(y = 1 \mid x)
+\]
+
+---
+
+## Loss Function (Binary Cross-Entropy)
+
+Binary cross-entropy measures how wrong the predicted probabilities are:
+
+\[
+L = -\frac{1}{m}\sum_{i=1}^{m}
+\left[
+y_i \log(\hat{y}_i) + (1 - y_i)\log(1 - \hat{y}_i)
+\right]
+\]
+
+Why this works:
+
+- It strongly penalizes confident incorrect predictions  
+- It produces clean, well-behaved gradients  
+- It is the standard loss for probabilistic binary classification  
+
+---
+
+## Gradient Derivation
+
+The gradients used for optimization are:
+
+\[
+dz = \hat{y} - y
+\]
+
+\[
+dw = \frac{1}{m} X^T dz
+\]
+
+\[
+db = \frac{1}{m} \sum dz
+\]
+
+Interpretation:
+
+- `dz` → error signal (prediction − truth)  
+- `dw` → distributes error back through features  
+- `db` → shifts the decision boundary  
+
+These gradients are used in **gradient descent**:
+
+\[
+w := w - \alpha dw
+\]
+
+\[
+b := b - \alpha db
+\]
+
+Where `α` is the learning rate.
+
+---
+
+## L2 Regularization
+
+To prevent overly large weights and improve generalization:
+
+\[
+L_{total} = L + \frac{\lambda}{2m} \sum w^2
+\]
+
+This adds the following to the weight gradient:
+
+\[
+\frac{\lambda}{m} w
+\]
+
+Regularization reduces weight magnitude while preserving the direction of the decision boundary.
+
+---
+
+## Project Features
+
+- Fully vectorized NumPy implementation  
+- Numerically stable sigmoid  
+- Gradient descent training loop  
+- Optional L2 regularization  
+- Accuracy / Precision / Recall metrics  
+- Loss curve plotting  
+- Comparison against sklearn implementation  
+- Synthetic noisy dataset evaluation  
+
+---
+
+## Comparison vs scikit-learn
+
+Two experiments were performed to validate correctness.
+
+### 1️⃣ Simple Separable Dataset
+
+**Custom Implementation**
+
+
+Weights: [2.862, 2.862]
+Loss: 0.00163
+
+
+**sklearn Implementation**
+
+
+Weights: [4.267, 4.267]
+Accuracy: 1.0
+
+
+Both models achieve perfect accuracy.  
+Magnitude differences are expected due to solver differences and optimization strategies.
+
+---
+
+### 2️⃣ Noisy Dataset (More Realistic Scenario)
+
+
+Custom accuracy: 0.928
+Sklearn accuracy: 0.928
+Cosine similarity: 0.9999999999999999
+
+
+Key takeaway:
+
+- Accuracy matches exactly  
+- Weight vectors align almost perfectly (cosine similarity ≈ 1.0)  
+- Norm differences are expected due to solver and regularization conventions  
+
+This confirms the correctness of the gradient implementation.
+
+---
+
+## How To Run
+
+Create a virtual environment:
+
+```bash
+python -m venv venv
+.\venv\Scripts\Activate
+pip install -r requirements.txt
+
+Run sanity checks:
+
+python sanity_check.py
+
+Run sklearn comparison:
+
+python model_comparison.py
