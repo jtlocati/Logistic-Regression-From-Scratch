@@ -37,18 +37,24 @@ def forward(X: numpy.ndarray, w: numpy.ndarray, b: float) -> numpy.ndarray:
     return y_hat
 
 #binary CE loss
-def compute_loss(y_true: numpy.ndarray, y_pred: numpy.ndarray, eps: float = 1e-12) -> float:
+def compute_loss(y_true, y_pred, w=None, lambda_12: float = 0.0, eps=1e-12) -> float:
     y_true = y_true.astype(float).reshape(-1)
     y_pred = numpy.clip(y_pred.astype(float).reshape(-1), eps, 1 - eps)
 
 
     losses = -(y_true * numpy.log(y_pred) + (1.0 - y_true) * numpy.log(1.0 - y_pred))
 
+    # Penalize large weights to protect over fitting by keeping weights small
+    if w is not None and lambda_12 > 0.0:
+        m = y_true.shape[0]
+        penalty_12 = lambda_12 / (2*m) * numpy.sum(w**2)
+        return (numpy.mean(losses) + penalty_12)
+
     return numpy.mean(losses)
 
 
 #calculate the graidents of loss w.r.t to then update weights and bias
-def gradient(X: numpy.ndarray, y_true: numpy.ndarray, y_pred: numpy.ndarray) -> tuple[numpy.ndarray, float]:
+def gradient(X: numpy.ndarray, y_true: numpy.ndarray, y_pred: numpy.ndarray, w, lambda_12: float = 0) -> tuple[numpy.ndarray, float]:
 
     m = X.shape[0] #number of samples
 
@@ -57,13 +63,18 @@ def gradient(X: numpy.ndarray, y_true: numpy.ndarray, y_pred: numpy.ndarray) -> 
 
     # weight and bias gradient values, detirmines by how much is a weight is edited 
     dw = (X.T @ dz) / m
+
+    #L2 Gradiant
+    if lambda_12 > 0:
+        m = X.shapw[0]
+        dw = dw + (lambda_12 / m) * w
     db = numpy.sum(dz) / m
 
     return dw, db
 
 #Train the model usign gradient decent
 # w = learned weights, b = learned bias, losses = array of lost values over time 
-def TrainLoop(X:numpy.ndarray, Y:numpy.ndarray, learning_rate: float = 0.1, epochs: int = 1000) -> tuple[numpy.ndarray, float, list[float]]:
+def TrainLoop(X: numpy.ndarray, Y: numpy.ndarray, learning_rate=0.1, epochs=1000, lambda_12: float = 0.0) -> tuple[numpy.ndarray, float, list[float]]:
 
 
     #initalize params
@@ -76,11 +87,11 @@ def TrainLoop(X:numpy.ndarray, Y:numpy.ndarray, learning_rate: float = 0.1, epoc
         y_pred = forward(X, w, b)
 
         #Claculate loss
-        loss = compute_loss(Y, y_pred)
+        loss = compute_loss(Y, y_pred, w=w, lambda_12=lambda_12)
         losses.append(loss)
 
         #Backdrop
-        dw, db = gradient(X, Y, y_pred)
+        dw, db = gradient(X, Y, y_pred, w=w, lambda_12=lambda_12)
 
         #update values by amount specifyed in gradient
         w = w - learning_rate * dw
