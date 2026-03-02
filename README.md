@@ -144,7 +144,7 @@ Regularization reduces weight magnitude while preserving the direction of the de
 
 Two experiments were performed to validate correctness.
 
-### 1️⃣ Simple Separable Dataset
+### 1️.) Simple Separable Dataset
 
 **Custom Implementation**
 
@@ -165,7 +165,7 @@ Magnitude differences are expected due to solver differences and optimization st
 
 ---
 
-### 2️⃣ Noisy Dataset (More Realistic Scenario)
+### 2.) Noisy Dataset (More Realistic Scenario)
 
 
 Custom accuracy: 0.928
