@@ -20,9 +20,7 @@ def sigmoid(z: numpy.ndarray) -> numpy.ndarray:
 
     return out
 
-#Initalizes wights and bias
-    # w = models weights
-    # b = models bias
+#Initalizes wights and bi
 def initialize_parameters(n_features: int) -> tuple[numpy.ndarray, float]:
 
     w=numpy.zeros(n_features, dtype=float)
@@ -33,7 +31,6 @@ def forward(X: numpy.ndarray, w: numpy.ndarray, b: float) -> numpy.ndarray:
 
     #Calulate linear socre per-sample
     z = X @ w+b
-    #then use the sigmoid function to find probability score
     y_hat = sigmoid(z)
 
     return y_hat
@@ -45,7 +42,7 @@ def compute_loss(y_true, y_pred, w=None, lambda_12: float = 0.0, eps=1e-12) -> f
 
     losses = -(y_true * numpy.log(y_pred) + (1.0 - y_true) * numpy.log(1.0 - y_pred))
 
-    # Penalize large weights to protect over fitting by keeping weights small
+    # Tringin step: model feedback
     if w is not None and lambda_12 > 0.0:
         m = y_true.shape[0]
         penalty_12 = lambda_12 / (2*m) * numpy.sum(w**2)
@@ -59,10 +56,8 @@ def gradient(X: numpy.ndarray, y_true: numpy.ndarray, y_pred: numpy.ndarray, w, 
 
     number = X.shape[0]
 
-    # calculate error per sample, prediction too high dz is positive & vice-versa
     dz = y_pred - y_true
 
-    # weight and bias gradient values, detirmines by how much is a weight is edited 
     dw = (X.T @ dz) / number
 
     #L2 Gradiant
@@ -73,26 +68,22 @@ def gradient(X: numpy.ndarray, y_true: numpy.ndarray, y_pred: numpy.ndarray, w, 
 
     return dw, db
 
-#Train the model usign gradient decent
 # w -> learned weights, b -> learned bias, losses -> array of lost values over time of function
 def TrainLoop(X: numpy.ndarray, Y: numpy.ndarray, learning_rate=0.1, epochs=1000, lambda_12: float = 0.0) -> tuple[numpy.ndarray, float, list[float]]:
 
 
-    Y = Y.reshape(-1) #Ensue that y is 1D and not 2D
+    Y = Y.reshape(-1)
     w, b = initialize_parameters(X.shape[1])
     losses = []
 
     step = max(1, epochs // 10)
     for epoch in range(epochs):
         y_pred = forward(X, w, b)
-
-        #Claculateing loss
         loss = compute_loss(Y, y_pred, w=w, lambda_12=lambda_12)
         losses.append(loss)
 
         dw, db = gradient(X, Y, y_pred, w=w, lambda_12=lambda_12)
 
-        #update values by amount specifyed in gradient
         w = w - learning_rate * dw
         b = b - learning_rate * db
 
@@ -102,7 +93,6 @@ def TrainLoop(X: numpy.ndarray, Y: numpy.ndarray, learning_rate=0.1, epochs=1000
 
     return w, b, losses
 
-#Predict probabilitys of 'm' for class one (essencally repackageing the forward function, this just allows function to make more sence when used in code)
 def probability(X: numpy.ndarray, w: numpy.ndarray, b: float) -> numpy.ndarray:
     return forward(X, w, b)
 
@@ -111,8 +101,6 @@ def predict(X: numpy.ndarray, w: numpy.ndarray, b: float, threshold: float = 0.0
     probabilitys = probability(X, w, b)
     return (probabilitys >= threshold).astype(int) #converts into binary dependent on threshold sensitvity
 
-
-#metric output + assignment
 
 def accuracy(y_true: numpy.ndarray, y_prediction: numpy.ndarray) -> float:
     y_true = y_true.reshape(-1)
@@ -123,7 +111,6 @@ def precision(y_true: numpy.ndarray, y_prediction: numpy.array) -> float:
     y_true = y_true.reshape(-1)
     y_prediction = y_prediction.reshape(-1)
 
-    #True & False positives (relate in: {Predicted value} and {Actual Value})
     tp = numpy.sum((y_true == 1) & (y_prediction == 1))
     fp = numpy.sum((y_true == 0) & (y_prediction == 1))
     return float(tp / (tp + fp + 1e-12))
